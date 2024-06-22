@@ -10,6 +10,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 public class JDBC_Productor {
     // URL de la base de datos, usuario y contraseña
@@ -35,19 +38,27 @@ public class JDBC_Productor {
         }
     }
 
-    // Método para insertar un nuevo productor
-    public static int productorInsert(int codigo, String nombre, int capacidadMaximaMW, String fechaInicio) {
+    public static int productorInsert(int codigo, String nombre, int capacidadMaxima, String fechaInicioString) {
         try (Connection con1 = getConnection()) {
             if (con1 != null) {
                 preparedStatement = con1.prepareStatement(INSERT_PRODUCTOR_SQL);
                 preparedStatement.setInt(1, codigo);
                 preparedStatement.setString(2, nombre);
-                preparedStatement.setInt(3, capacidadMaximaMW);
-                preparedStatement.setString(4, fechaInicio);
+                preparedStatement.setInt(3, capacidadMaxima);
+
+                // Convertir la cadena de fecha a java.sql.Date
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                java.util.Date parsedDate = dateFormat.parse(fechaInicioString);
+                java.sql.Date sqlDate = new java.sql.Date(parsedDate.getTime());
+
+                preparedStatement.setDate(4, sqlDate);
+
                 return preparedStatement.executeUpdate();
             }
         } catch (SQLException ex) {
             System.err.println("Error al insertar el productor: " + ex.getMessage());
+        } catch (ParseException ex) {
+            System.err.println("Error al parsear la fecha: " + ex.getMessage());
         }
         return -1;
     }
